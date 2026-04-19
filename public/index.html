@@ -1,0 +1,1562 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="">
+    <title>BTC Notar — Доказва авторство и дата чрез Bitcoin</title>
+    <link rel="icon" href="data:,">
+
+    <style>
+        .brand-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            height: 60px;
+            object-fit: cover;
+        }
+
+        .brand-text h1 {
+            margin: 0;
+            line-height: 1.1;
+        }
+
+        .brand-text p {
+            margin: 4px 0 0;
+        }
+
+        /* Mobile */
+        @media (max-width: 640px) {
+            .logo {
+                height: 40px;
+            }
+        }
+
+        :root {
+            --btc: #f7931a;
+            --bg0: #0b0e13;
+            --bg1: #121722;
+            --card: #171c28;
+            --line: #242b3d;
+            --text: #f2f4f8;
+            --muted: #9aa4bf;
+            --good: #2ecc71;
+            --bad: #ff5c7a;
+            --radius: 18px;
+            --shadow: 0 20px 60px rgba(0,0,0,.55);
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui,Segoe UI,Roboto;
+            background: radial-gradient(900px 420px at 75% 0%,rgba(247,147,26,.14),transparent 60%), radial-gradient(700px 380px at 20% 10%,rgba(247,147,26,.08),transparent 60%), linear-gradient(180deg,var(--bg1),var(--bg0));
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+            background: rgba(11,14,19,.90);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 16px
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .brand h1 {
+            margin: 0;
+            color: var(--btc);
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: .2px;
+        }
+
+        .brand p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .brand .motto {
+            margin: 6px 0 0;
+            color: #d6dcf0;
+            font-size: 12px;
+            opacity: .92;
+        }
+
+            .brand .motto strong {
+                color: var(--btc);
+            }
+
+        select, button, input, textarea {
+            background: #0f1420;
+            color: var(--text);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        select {
+            width: auto;
+            padding-right: 36px;
+        }
+
+        button {
+            font-weight: 800;
+            cursor: pointer;
+            border: none;
+        }
+
+            button.primary {
+                background: linear-gradient(180deg,#ffb347,var(--btc));
+                color: #000;
+                box-shadow: 0 10px 30px rgba(247,147,26,.18);
+            }
+
+            button.warn {
+                background: linear-gradient(180deg,#ffd27a,#f9a825);
+                color: #000;
+                box-shadow: 0 10px 30px rgba(249,168,37,.14);
+            }
+
+            button:disabled {
+                opacity: .45;
+                cursor: not-allowed;
+                filter: grayscale(40%);
+                box-shadow: none;
+            }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .card {
+            background: linear-gradient(180deg,#1a2030,#141a26);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+            .card .hd {
+                padding: 16px;
+                border-bottom: 1px solid var(--line)
+            }
+
+                .card .hd h2 {
+                    margin: 0;
+                    font-size: 15px
+                }
+
+                .card .hd small {
+                    color: var(--muted);
+                    font-size: 12px
+                }
+
+            .card .bd {
+                padding: 16px
+            }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 10px
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .status {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 12px;
+            margin-top: 14px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(15,20,32,.55);
+        }
+
+        .badge {
+            font-size: 12px;
+            font-weight: 900;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,.06);
+        }
+
+            .badge.good {
+                color: var(--good)
+            }
+
+            .badge.bad {
+                color: var(--bad)
+            }
+
+            .badge.neutral {
+                color: var(--btc)
+            }
+
+        .mono {
+            font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+            word-break: break-all;
+            line-height: 1.3;
+        }
+
+        a.mempool {
+            color: var(--btc);
+            font-weight: 900;
+            display: inline-block;
+            margin-top: 12px;
+            text-decoration: none;
+        }
+
+            a.mempool:hover {
+                text-decoration: underline
+            }
+
+        /* QR + invoice */
+        .qrwrap {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        #qrImg {
+            width: 220px;
+            height: 220px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: #fff;
+        }
+
+        #bolt11 {
+            flex: 1;
+            min-height: 220px;
+            resize: none;
+        }
+
+        .smallhint {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+
+        /* Tabs */
+
+        /* How-to list */
+        .how {
+            margin: 0;
+            padding-left: 18px;
+            line-height: 1.5;
+        }
+
+            .how li {
+                margin: 10px 0;
+            }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            padding-top: 10px;
+            padding-bottom: 12px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab {
+            background: #0f1420;
+            color: var(--text);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-weight: 800;
+            cursor: pointer;
+            white-space: nowrap;
+            flex: 0 0 auto;
+        }
+
+            .tab.active {
+                background: linear-gradient(180deg,#ffb347,var(--btc));
+                color: #000;
+                box-shadow: 0 10px 30px rgba(247,147,26,.12);
+                border-color: rgba(0,0,0,.0);
+            }
+
+        .tab-content {
+            display: none;
+        }
+
+            .tab-content.active {
+                display: block;
+            }
+
+
+        /* Icon list */
+        .icon-list {
+            list-style: none;
+            padding: 0;
+            margin: 12px 0 0;
+        }
+
+            .icon-list li {
+                display: flex;
+                gap: 10px;
+                align-items: flex-start;
+                margin: 10px 0;
+            }
+
+            .icon-list .icon {
+                font-size: 18px;
+                line-height: 1.2;
+            }
+
+
+        /* Mobile-first improvements */
+        html {
+            -webkit-text-size-adjust: 100%;
+        }
+
+        /* Better tap + scroll on mobile */
+        button, select, input, textarea {
+            touch-action: manipulation;
+        }
+
+        /* Safe-area padding for notched devices */
+        body {
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+
+        /* Make tabs area feel like part of the sticky header on scroll */
+        nav.tabs {
+            position: sticky;
+            top: 70px; /* below header */
+            z-index: 9;
+            backdrop-filter: blur(10px);
+            background: rgba(11,14,19,.80);
+            border-bottom: 1px solid var(--line);
+        }
+
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: none;
+        }
+
+            .modal.show {
+                display: block;
+            }
+
+        .modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,.65);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-card {
+            position: relative;
+            max-width: 520px;
+            margin: 10vh auto;
+            background: linear-gradient(180deg,#1a2030,#141a26);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+        }
+
+            .modal-card h2 {
+                margin-top: 0;
+            }
+
+        .modal-note {
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .modal-btn {
+            width: 100%;
+            margin-top: 16px;
+        }
+
+
+        /* Mobile menu */
+        .menu-btn {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: rgba(15,20,32,.75);
+            cursor: pointer;
+            flex: 0 0 auto;
+        }
+
+        .menu-icon {
+            width: 18px;
+            height: 2px;
+            background: var(--text);
+            border-radius: 999px;
+            position: relative;
+            display: inline-block;
+        }
+
+            .menu-icon::before,
+            .menu-icon::after {
+                content: "";
+                position: absolute;
+                left: 0;
+                width: 18px;
+                height: 2px;
+                background: var(--text);
+                border-radius: 999px;
+            }
+
+            .menu-icon::before {
+                top: -6px;
+            }
+
+            .menu-icon::after {
+                top: 6px;
+            }
+
+        .menu-panel {
+            display: none;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: rgba(15,20,32,.92);
+            box-shadow: var(--shadow);
+            margin-top: 10px;
+        }
+
+            .menu-panel.open {
+                display: grid;
+                gap: 10px;
+            }
+
+        .menu-item {
+            width: 100%;
+            text-align: left;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: rgba(15,20,32,.55);
+            color: var(--text);
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+            .menu-item.active {
+                background: linear-gradient(180deg,#ffb347,var(--btc));
+                color: #000;
+                border-color: rgba(0,0,0,0);
+            }
+
+
+        /* Wizard */
+        .wizard {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .wizard-step {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: rgba(15,20,32,.5);
+            color: var(--muted);
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+            .wizard-step .num {
+                width: 22px;
+                height: 22px;
+                border-radius: 999px;
+                background: #2a2f3d;
+                display: grid;
+                place-items: center;
+                font-size: 12px;
+                flex: 0 0 auto;
+            }
+
+            .wizard-step.active {
+                background: linear-gradient(180deg,#ffb347,var(--btc));
+                color: #000;
+                box-shadow: 0 10px 30px rgba(247,147,26,.12);
+                border-color: rgba(0,0,0,.0);
+            }
+
+                .wizard-step.active .num {
+                    background: #000;
+                    color: #fff;
+                }
+
+        .wizard-help {
+            font-size: 13px;
+            color: var(--muted);
+            margin: 0 0 14px 0;
+        }
+
+
+        /* Wizard done */
+        .wizard-step .ok {
+            display: none;
+        }
+
+        .wizard-step.done {
+            color: var(--text);
+        }
+
+            .wizard-step.done .num {
+                background: rgba(15,20,32,.85);
+                color: var(--text);
+            }
+
+            .wizard-step.done .n {
+                display: none;
+            }
+
+            .wizard-step.done .ok {
+                display: inline;
+                font-size: 12px;
+            }
+
+        /* --- Responsive rules --- */
+        @media (max-width:1024px) {
+            .grid {
+                grid-template-columns: 1fr
+            }
+        }
+
+
+        @media (max-width:640px) {
+            /* Wizard stack */
+            .wizard {
+                flex-direction: column;
+            }
+
+            .wrap {
+                padding: 12px;
+            }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="wrap topbar">
+            <div class="brand">
+                <div class="brand-row">
+                    <img src="logo.png" alt="BTC Notar logo" class="logo">
+                    <div class="brand-text">
+                        <h1 id="t_title"></h1>
+                        <p id="t_subtitle"></p>
+                    </div>
+                </div>
+                <p id="t_motto" class="motto"></p>
+            </div>
+            <select id="langSelect" aria-label="Language">
+                <option value="en">EN</option>
+                <option value="bg">BG</option>
+                <option value="de">DE</option>
+            </select>
+        </div>
+    </header>
+
+    <nav class="wrap tabs" aria-label="Navigation">
+        <button class="menu-btn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false">
+            <span class="menu-icon" aria-hidden="true"></span>
+        </button>
+
+
+        <button class="tab active" id="tabBtn_app" data-tab="app" type="button"></button>
+        <button class="tab" id="tabBtn_about" data-tab="about" type="button"></button>
+        <button class="tab" id="tabBtn_how" data-tab="how" type="button"></button>
+
+
+        <div class="menu-panel" id="menuPanel" aria-label="Mobile menu">
+            <button class="menu-item" data-tab="app" type="button" id="menuItem_app"></button>
+            <button class="menu-item" data-tab="about" type="button" id="menuItem_about"></button>
+            <button class="menu-item" data-tab="how" type="button" id="menuItem_how"></button>
+        </div>
+    </nav>
+
+    <main class="wrap">
+
+        <!-- APP -->
+        <section id="tab-app" class="tab-content active">
+
+            <!-- WIZARD -->
+            <div class="wizard" aria-label="Wizard">
+                <div class="wizard-step active" data-step="1">
+                    <span class="num"><span class="n">1</span><span class="ok">✔</span></span>
+                    <span class="txt" id="t_wizS1"></span>
+                </div>
+                <div class="wizard-step" data-step="2">
+                    <span class="num"><span class="n">2</span><span class="ok">✔</span></span>
+                    <span class="txt" id="t_wizS2"></span>
+                </div>
+                <div class="wizard-step" data-step="3">
+                    <span class="num"><span class="n">3</span><span class="ok">✔</span></span>
+                    <span class="txt" id="t_wizS3"></span>
+                </div>
+            </div>
+            <p class="wizard-help" id="t_wizHelp"></p>
+
+            <div class="grid">
+
+                <!-- CREATE -->
+                <section class="card">
+                    <div class="hd">
+                        <h2 id="t_createTitle"></h2>
+                        <small id="t_createDesc"></small>
+                    </div>
+                    <div class="bd">
+
+                        <label id="t_fileLabel"></label>
+                        <input id="fileIn" type="file" />
+
+                        <label style="display:none" id="t_textLabel"></label>
+                        <textarea style="display:none" id="textIn" rows="4" placeholder="" style="width:100%"></textarea>
+
+                        <label id="t_hashLabel"></label>
+                        <input id="hashIn" class="mono" placeholder="64-hex SHA-256..." style="width:100%" />
+
+
+                        <div class="row">
+                            <button class="primary" id="btnHash"></button>
+                            <button class="warn" id="btnPay" disabled></button>
+                        </div>
+
+                        <div class="status">
+                            <span class="badge neutral" id="payBadge">IDLE</span>
+                            <div id="payMsg"></div>
+                        </div>
+
+                        <div id="qrRow" style="display:none;margin-top:12px">
+                            <div class="qrwrap">
+                                <img id="qrImg" alt="Lightning invoice QR" />
+                                <div style="flex:1;min-width:0">
+                                    <textarea id="bolt11" class="mono" readonly></textarea>
+                                    <div class="smallhint" id="t_invoiceHint"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <label id="t_shaOutLabel"></label>
+                        <div id="outHash" class="mono">—</div>
+                    </div>
+                </section>
+
+                <!-- VERIFY -->
+                <section class="card">
+                    <div class="hd">
+                        <h2 id="t_verifyTitle"></h2>
+                        <small>mempool.space</small>
+                    </div>
+                    <div class="bd">
+                        <label id="t_txidLabel"></label>
+                        <input id="txid" placeholder="64-hex TXID..." />
+
+                        <div class="row">
+                            <button class="primary" id="btnVerify" disabled></button>
+                        </div>
+
+                        <div id="verifyBox" class="status" style="display:none">
+                            <span class="badge neutral" id="verifyBadge"></span>
+                            <div id="verifyMsg"></div>
+                        </div>
+
+                        <a id="mempoolLink" class="mempool" target="_blank" rel="noreferrer" style="display:none">
+                            <span id="t_viewMempool"></span>
+                        </a>
+                    </div>
+                </section>
+
+            </div>
+        </section>
+
+
+        <!-- ABOUT -->
+        <section id="tab-about" class="tab-content">
+            <section class="card">
+                <div class="hd">
+                    <h2 id="t_aboutTitle"></h2>
+                    <small id="t_aboutSubtitle"></small>
+                </div>
+                <div class="bd">
+                    <p id="t_aboutP1"></p>
+                    <p id="t_aboutP2"></p>
+                    <ul class="icon-list">
+                        <li><span class="icon">✍️</span><span id="t_aboutL1"></span></li>
+                        <li><span class="icon">📄</span><span id="t_aboutL2"></span></li>
+                        <li><span class="icon">🔎</span><span id="t_aboutL3"></span></li>
+                    </ul>
+                </div>
+
+                <section class="card" style="margin-top:14px">
+                    <div class="hd">
+                        <h2 id="t_forWhoTitle"></h2>
+                        <small id="t_forWhoSubtitle"></small>
+                    </div>
+                    <div class="bd">
+                        <ul class="icon-list">
+                            <li><span class="icon">⚖️</span><span id="t_forWho1"></span></li>
+                            <li><span class="icon">🧑‍💻</span><span id="t_forWho2"></span></li>
+                            <li><span class="icon">📸</span><span id="t_forWho3"></span></li>
+                            <li><span class="icon">🧠</span><span id="t_forWho4"></span></li>
+                        </ul>
+                    </div>
+                </section>
+
+                <div class="status" style="margin-top:14px">
+                    <span class="badge neutral">ℹ️</span>
+                    <div id="t_legalNote"></div>
+                </div>
+
+            </section>
+        </section>
+
+
+        <!-- HOW TO USE -->
+        <section id="tab-how" class="tab-content">
+            <section class="card">
+                <div class="hd">
+                    <h2 id="t_howTitle"></h2>
+                    <small id="t_howSubtitle"></small>
+                </div>
+                <div class="bd">
+                    <ol class="how">
+                        <li><strong id="t_howS1T"></strong><br><span id="t_howS1D"></span></li>
+                        <li><strong id="t_howS2T"></strong><br><span id="t_howS2D"></span></li>
+                        <li><strong id="t_howS3T"></strong><br><span id="t_howS3D"></span></li>
+                        <li><strong id="t_howS4T"></strong><br><span id="t_howS4D"></span></li>
+                    </ol>
+
+                    <div class="status" style="margin-top:14px">
+                        <span class="badge neutral" id="t_howNoteBadge"></span>
+                        <div id="t_howNote"></div>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+    </main>
+
+    <script>
+        /* ================= i18n ================= */
+        const i18n = {
+            en: {
+                title: "Bitcoin Proof of Existence",
+                textLabel: "Text (optional)",
+                hashLabel: "Or paste SHA-256 (64 hex)",
+                subtitle: "Proves authorship and date using Bitcoin",
+                legalNote: "This application does not provide legal advice and does not replace legal or notarial services.",
+                forWho4: "Anyone who wants to protect an idea or document",
+                forWho3: "Photographers and content authors",
+                forWho2: "Developers, designers, and creators",
+                forWho1: "Lawyers and people who need proof",
+                forWhoSubtitle: "Real-world use cases",
+                forWhoTitle: "Who is this for?",
+                seoDescription: "BTC Notar proves authorship and date using Bitcoin. Create verifiable digital proof for files or text, without intermediaries.",
+                pageTitle: "BTC Notar — Proves authorship and date using Bitcoin",
+                createTitle: "Create timestamp",
+                createDesc: "Hash locally and anchor to Bitcoin mainnet",
+                fileLabel: "File (optional)",
+                genHash: "Generate SHA-256",
+                pay: "Pay & write to blockchain",
+                paying: "Waiting for Lightning payment…",
+                paid: "Paid. Writing to blockchain…",
+                payIdle: "Generate hash, then pay.",
+                invoiceHint: "Scan with a Lightning wallet (or copy BOLT11).",
+                done: "This hash is recorded on the Bitcoin blockchain.",
+                verifyTitle: "Verify timestamp",
+                verify: "Verify",
+                checking: "Checking blockchain…",
+                notFound: "Transaction exists, but this hash is NOT in OP_RETURN.",
+                verifyError: "Unable to fetch transaction from mempool.space.",
+                rightIdle: "Enter TXID and verify.",
+                motto: "Don’t trust. Prove. Use Bitcoin — the most secure network.",
+                aboutTitle: "What is this?",
+                aboutSubtitle: "Digital proof secured by Bitcoin",
+                aboutP1: "BTC Notar is a digital notary that proves a file, text, or document existed at a specific moment in time.",
+                aboutP2: "Your files are never uploaded. A unique cryptographic fingerprint (SHA-256) is created locally and recorded on the Bitcoin blockchain.",
+                aboutL1: "Proves authorship and creation date",
+                aboutL2: "Useful for documents, images, code, ideas, and evidence",
+                aboutL3: "Verifiable anytime, without intermediaries",
+                txLoadedNoHash: "Transaction loaded. Provide SHA-256 to check OP_RETURN.",
+
+                tabApp: "App",
+                tabAbout: "What is this?",
+                tabHow: "How to use",
+                textPlaceholder: "Paste text to hash…",
+                hashPlaceholder: "64-hex SHA-256…",
+                txidPlaceholder: "64-hex TXID…",
+                txidLabel: "TXID",
+                shaOutLabel: "SHA-256",
+                viewMempool: "View on mempool.space →",
+                howTitle: "How to use",
+                howSubtitle: "4 quick steps",
+                howS1T: "1) Create a hash",
+                howS1D: "Enter text, select a file, or paste an existing SHA-256. The hash is generated locally.",
+                howS2T: "2) Pay via Lightning",
+                howS2D: "You’ll receive a Lightning invoice (BOLT11 / QR). Pay it with any Lightning wallet.",
+                howS3T: "3) Get a TXID",
+                howS3D: "After payment, the hash is written into Bitcoin (OP_RETURN). You get a transaction id (TXID).",
+                howS4T: "4) Verify anytime",
+                howS4D: "Paste the TXID (and optionally the hash) to verify on-chain via mempool.space.",
+                howNoteBadge: "NOTE",
+                howNote: "If your file changes even by 1 byte, the SHA-256 will be different.",
+                modalTitle: "What is this application?",
+                modalP1: "BTC Notar lets you prove that a file or text was yours and existed at a specific moment in time.",
+                modalL1: "Your files and texts are NOT uploaded or stored anywhere",
+                modalL2: "Only a cryptographic fingerprint (hash) is written to Bitcoin",
+                modalL3: "You can prove authorship and date at any time",
+                modalNote: "Useful for documents, images, code, ideas, and evidence.",
+                modalBtn: "Got it, continue",
+                wizS1: "Choose file or text",
+                wizS2: "Create fingerprint",
+                wizS3: "Record proof",
+                wizHelp1: "👉 Start by entering text or selecting a file",
+                wizHelp2: "👉 Click “Generate SHA-256” (fingerprint)",
+                wizHelp3: "👉 Pay and save the TXID (receipt)",
+            },
+            bg: {
+                title: "Bitcoin доказателство за съществуване",
+                subtitle: "Доказва авторство и дата чрез Bitcoin",
+                legalNote: "Това приложение не предоставя правен съвет и не замества нотариална или юридическа услуга.",
+                forWho4: "Всеки, който иска да защити идея или документ",
+                forWho3: "Фотографи и автори на съдържание",
+                forWho2: "Програмисти, дизайнери и създатели",
+                forWho1: "Юристи и хора с нужда от доказателства",
+                forWhoSubtitle: "Примери от реалния живот",
+                forWhoTitle: "За кого е подходящо?",
+                seoDescription: "BTC Notar доказва авторство и дата чрез Bitcoin. Създай проверимо дигитално доказателство за файл или текст, без посредници.",
+                pageTitle: "BTC Notar — Доказва авторство и дата чрез Bitcoin",
+                textLabel: "Текст (по избор)",
+                hashLabel: "Или постави SHA-256 (64 hex)",
+                createTitle: "Създай timestamp",
+                createDesc: "Хеширай локално и запиши в Bitcoin mainnet",
+                fileLabel: "Файл (по избор)",
+                genHash: "Генерирай SHA-256",
+                pay: "Плати и запиши в блокчейна",
+                paying: "Чакам Lightning плащане…",
+                paid: "Платено. Пиша в блокчейна…",
+                payIdle: "Генерирай хеш, после плати.",
+                invoiceHint: "Сканирай с Lightning портфейл (или копирай BOLT11).",
+                done: "Този хеш съществува в Bitcoin блокчейна.",
+                verifyTitle: "Провери timestamp",
+                verify: "Провери",
+                checking: "Проверявам блокчейна…",
+                notFound: "Има транзакция, но този хеш НЕ е в OP_RETURN.",
+                verifyError: "Не мога да заредя транзакцията от mempool.space.",
+                rightIdle: "Въведи TXID и провери.",
+                motto: "Не вярвай. Доказвай. Използвай Bitcoin — най-сигурната мрежа.",
+                aboutTitle: "Какво представлява това?",
+                aboutSubtitle: "Дигитално доказателство, защитено от Bitcoin",
+                aboutP1: "BTC Notar е дигитален нотариус, който доказва, че даден файл, текст или документ е бил създаден и е съществувал в определен момент.",
+                aboutP2: "Приложението не качва твоите файлове никъде. От тях се създава уникален криптографски отпечатък (SHA-256), който се записва в Bitcoin блокчейна.",
+                aboutL1: "Доказва авторство и дата на създаване",
+                aboutL2: "Подходящо за договори, снимки, код, идеи и доказателства",
+                aboutL3: "Проверимо по всяко време, без посредници или доверие",
+                txLoadedNoHash: "Транзакцията е заредена. Дай SHA-256, за да провериш OP_RETURN.",
+
+                tabApp: "Приложение",
+                tabAbout: "Какво е това?",
+                tabHow: "Как се използва?",
+                textPlaceholder: "Постави текст за хеширане…",
+                hashPlaceholder: "SHA-256 (64 hex)…",
+                txidPlaceholder: "TXID (64 hex)…",
+                txidLabel: "TXID",
+                shaOutLabel: "SHA-256",
+                viewMempool: "Виж в mempool.space →",
+                howTitle: "Как се използва",
+                howSubtitle: "4 бързи стъпки",
+                howS1T: "1) Създай хеш",
+                howS1D: "Въведи текст, избери файл или постави готов SHA-256. Хешът се генерира локално.",
+                howS2T: "2) Плати с Lightning",
+                howS2D: "Ще получиш Lightning фактура (BOLT11 / QR). Плати с Lightning портфейл.",
+                howS3T: "3) Вземи TXID",
+                howS3D: "След плащане хешът се записва в Bitcoin (OP_RETURN). Получаваш идентификатор на транзакция (TXID).",
+                howS4T: "4) Провери по всяко време",
+                howS4D: "Постави TXID (и по желание хеш), за да провериш в блокчейна през mempool.space.",
+                howNoteBadge: "ВАЖНО",
+                howNote: "Ако файлът се промени дори с 1 байт, SHA-256 ще е различен.",
+                modalTitle: "Какво е това приложение?",
+                modalP1: "BTC Notar ти позволява да докажеш, че даден файл или текст е бил твой и е съществувал в определен момент.",
+                modalL1: "Файловете и текстовете НЕ се качват и НЕ се съхраняват никъде",
+                modalL2: "В Bitcoin се записва само криптографски отпечатък (хеш)",
+                modalL3: "Можеш да доказваш авторство и дата по всяко време",
+                modalNote: "Подходящо за договори, снимки, код, идеи и доказателства.",
+                modalBtn: "Разбрах, продължи",
+                wizS1: "Избери файл или текст",
+                wizS2: "Направи отпечатък",
+                wizS3: "Запиши доказателството",
+                wizHelp1: "👉 Започни като въведеш текст или избереш файл",
+                wizHelp2: "👉 Натисни „Генерирай SHA-256“ (отпечатък)",
+                wizHelp3: "👉 Плати и запази TXID (квитанцията)",
+            },
+            de: {
+                title: "Bitcoin Existenznachweis",
+                subtitle: "Beweist Urheberschaft und Datum mit Bitcoin",
+                legalNote: "Diese Anwendung stellt keine Rechtsberatung dar und ersetzt keine notarielle oder rechtliche Dienstleistung.",
+                forWho4: "Jeder, der eine Idee oder ein Dokument schützen möchte",
+                forWho3: "Fotografen und Content-Ersteller",
+                forWho2: "Entwickler, Designer und Kreative",
+                forWho1: "Juristen und Personen mit Beweisbedarf",
+                forWhoSubtitle: "Anwendungsbeispiele",
+                forWhoTitle: "Für wen ist das?",
+                seoDescription: "BTC Notar beweist Urheberschaft und Datum mit Bitcoin. Erstelle überprüfbare digitale Nachweise ohne Vermittler.",
+                pageTitle: "BTC Notar — Beweist Urheberschaft und Datum mit Bitcoin",
+                createTitle: "Timestamp erstellen",
+                textLabel: "Text (optional)",
+                hashLabel: "Oder SHA-256 einfügen (64 hex)",
+                createDesc: "Lokal hashen und in Bitcoin Mainnet verankern",
+                fileLabel: "Datei (optional)",
+                genHash: "SHA-256 erzeugen",
+                pay: "Bezahlen & in Blockchain schreiben",
+                paying: "Warte auf Lightning-Zahlung…",
+                paid: "Bezahlt. Schreibe in die Blockchain…",
+                payIdle: "Erzeuge Hash, dann bezahlen.",
+                invoiceHint: "Mit Lightning-Wallet scannen (oder BOLT11 kopieren).",
+                done: "Dieser Hash ist in der Bitcoin-Blockchain gespeichert.",
+                verifyTitle: "Timestamp prüfen",
+                verify: "Prüfen",
+                checking: "Prüfe Blockchain…",
+                notFound: "Transaktion existiert, aber dieser Hash ist NICHT in OP_RETURN.",
+                verifyError: "Transaktion konnte nicht von mempool.space geladen werden.",
+                rightIdle: "TXID eingeben und prüfen.",
+                motto: "Nicht vertrauen. Beweisen. Nutze Bitcoin — das sicherste Netzwerk.",
+                aboutTitle: "Was ist das?",
+                aboutSubtitle: "Digitaler Nachweis, gesichert durch Bitcoin",
+                aboutP1: "BTC Notar ist ein digitaler Notar, der beweist, dass eine Datei, ein Text oder ein Dokument zu einem bestimmten Zeitpunkt existiert hat.",
+                aboutP2: "Deine Dateien werden nicht hochgeladen. Es wird lediglich ein eindeutiger kryptografischer Fingerabdruck (SHA-256) erzeugt und in der Bitcoin-Blockchain gespeichert.",
+                aboutL1: "Beweist Urheberschaft und Erstellungsdatum",
+                aboutL2: "Geeignet für Dokumente, Bilder, Code, Ideen und Beweise",
+                aboutL3: "Jederzeit überprüfbar, ohne Vermittler",
+                txLoadedNoHash: "Transaktion geladen. Bitte SHA-256 angeben, um OP_RETURN zu prüfen.",
+
+                tabApp: "App",
+                tabAbout: "Was ist das?",
+                tabHow: "Wie benutzt man es?",
+                textPlaceholder: "Text zum Hashen einfügen…",
+                hashPlaceholder: "SHA-256 (64 hex)…",
+                txidPlaceholder: "TXID (64 hex)…",
+                txidLabel: "TXID",
+                shaOutLabel: "SHA-256",
+                viewMempool: "Auf mempool.space ansehen →",
+                howTitle: "So funktioniert’s",
+                howSubtitle: "4 schnelle Schritte",
+                howS1T: "1) Hash erstellen",
+                howS1D: "Text eingeben, Datei wählen oder einen SHA-256 einfügen. Der Hash wird lokal erzeugt.",
+                howS2T: "2) Per Lightning bezahlen",
+                howS2D: "Du erhältst eine Lightning-Rechnung (BOLT11 / QR). Bezahle mit einer Lightning-Wallet.",
+                howS3T: "3) TXID erhalten",
+                howS3D: "Nach der Zahlung wird der Hash in Bitcoin (OP_RETURN) geschrieben. Du erhältst eine TXID.",
+                howS4T: "4) Jederzeit prüfen",
+                howS4D: "TXID (und optional den Hash) einfügen und on-chain über mempool.space verifizieren.",
+                howNoteBadge: "HINWEIS",
+                howNote: "Wenn sich die Datei auch nur um 1 Byte ändert, ist der SHA-256 anders.",
+                modalTitle: "Was ist diese Anwendung?",
+                modalP1: "BTC Notar ermöglicht es dir zu beweisen, dass eine Datei oder ein Text dir gehörte und zu einem bestimmten Zeitpunkt existierte.",
+                modalL1: "Dateien und Texte werden NICHT hochgeladen oder gespeichert",
+                modalL2: "Nur ein kryptografischer Fingerabdruck (Hash) wird in Bitcoin geschrieben",
+                modalL3: "Urheberschaft und Datum sind jederzeit beweisbar",
+                modalNote: "Geeignet für Dokumente, Bilder, Code, Ideen und Beweise.",
+                modalBtn: "Verstanden, weiter",
+                wizS1: "Datei oder Text wählen",
+                wizS2: "Fingerabdruck erstellen",
+                wizS3: "Nachweis speichern",
+                wizHelp1: "👉 Starte mit Text oder wähle eine Datei",
+                wizHelp2: "👉 Klicke „SHA-256 erzeugen“ (Fingerabdruck)",
+                wizHelp3: "👉 Bezahle und speichere die TXID (Quittung)",
+            }
+        };
+
+        let currentLang = localStorage.getItem("lang") || "en";
+
+        function t(key) {
+            return (i18n[currentLang] && i18n[currentLang][key]) || (i18n.en[key] || key);
+        }
+
+        /* ================= validation + state ================= */
+
+        /* ================= wizard ================= */
+
+        function setWizardStep(step) {
+            const s = Number(step);
+            document.querySelectorAll(".wizard-step").forEach(el => {
+                const n = Number(el.dataset.step);
+                el.classList.toggle("active", n === s);
+                el.classList.toggle("done", n < s);
+            });
+
+            const help = document.getElementById("t_wizHelp");
+            if (!help) return;
+            if (s === 1) help.textContent = t("wizHelp1");
+            if (s === 2) help.textContent = t("wizHelp2");
+            if (s === 3) help.textContent = t("wizHelp3");
+        }
+
+        function computeWizardStep() {
+            const hasInput =
+                ((textIn.value || "").trim().length > 0) ||
+                (fileIn.files && fileIn.files[0]) ||
+                isHash((hashIn.value || "").trim());
+
+            const hasHash = isHash((outHash.textContent || "").trim());
+            if (!hasInput) return 1;
+            if (!hasHash) return 2;
+            return 3;
+        }
+
+        function refreshWizard() {
+            setWizardStep(computeWizardStep());
+        }
+
+
+        function smoothScrollTo(el) {
+            try {
+                if (!el) return;
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+            } catch (e) {
+                // fallback
+                if (el) el.scrollIntoView();
+            }
+        }
+
+
+        /* ================= intro modal ================= */
+        const introModal = document.getElementById("introModal");
+        const modalCloseBtn = document.getElementById("modalCloseBtn");
+
+        function applyModalLang() {
+            if (!introModal || !modalCloseBtn) return;
+            t_modalTitle.textContent = t("modalTitle");
+            t_modalP1.textContent = t("modalP1");
+            t_modalL1.textContent = t("modalL1");
+            t_modalL2.textContent = t("modalL2");
+            t_modalL3.textContent = t("modalL3");
+            t_modalNote.textContent = t("modalNote");
+            modalCloseBtn.textContent = t("modalBtn");
+        }
+
+        function showIntroModalIfNeeded() {
+            if (!introModal) return;
+            if (!localStorage.getItem("introSeen")) {
+                introModal.classList.add("show");
+            }
+        }
+
+        if (modalCloseBtn && !modalCloseBtn.dataset.bound) {
+            modalCloseBtn.addEventListener("click", () => {
+                introModal.classList.remove("show");
+                localStorage.setItem("introSeen", "1");
+            });
+            modalCloseBtn.dataset.bound = "1";
+        }
+
+        function isHash(h) { return /^[0-9a-f]{64}$/i.test(h); }
+        function isTx(tid) { return /^[0-9a-f]{64}$/i.test((tid || "").trim()); }
+
+        function updateButtons() {
+            btnPay.disabled = !isHash(outHash.textContent.trim());
+            btnVerify.disabled = !isTx(txid.value);
+        }
+
+        /* ================= language apply ================= */
+        function applyLang(lang) {
+            currentLang = lang;
+            localStorage.setItem("lang", lang);
+            document.documentElement.lang = lang;
+
+            t_title.textContent = t("title");
+            t_subtitle.textContent = t("subtitle");
+            document.title = t("pageTitle");
+            const metaDesc = document.querySelector('meta[name="description"]');
+            if (metaDesc) metaDesc.setAttribute("content", t("seoDescription"));
+            t_motto.innerHTML = t("motto");
+            t_textLabel.textContent = t("textLabel");
+            t_hashLabel.textContent = t("hashLabel");
+            t_createTitle.textContent = t("createTitle");
+            t_createDesc.textContent = t("createDesc");
+            t_fileLabel.textContent = t("fileLabel");
+            btnHash.textContent = t("genHash");
+            btnPay.textContent = t("pay");
+            t_verifyTitle.textContent = t("verifyTitle");
+            btnVerify.textContent = t("verify");
+            payMsg.textContent = t("payIdle");
+            t_invoiceHint.textContent = t("invoiceHint");
+
+            // About / Notary section
+            t_aboutTitle.textContent = t("aboutTitle");
+            t_aboutSubtitle.textContent = t("aboutSubtitle");
+            t_aboutP1.textContent = t("aboutP1");
+            t_aboutP2.textContent = t("aboutP2");
+            t_aboutL1.textContent = t("aboutL1");
+            t_aboutL2.textContent = t("aboutL2");
+            t_aboutL3.textContent = t("aboutL3");
+            t_forWhoTitle.textContent = t("forWhoTitle");
+            t_forWhoSubtitle.textContent = t("forWhoSubtitle");
+            t_forWho1.textContent = t("forWho1");
+            t_forWho2.textContent = t("forWho2");
+            t_forWho3.textContent = t("forWho3");
+            t_forWho4.textContent = t("forWho4");
+            t_legalNote.textContent = t("legalNote");
+
+
+            // Tabs
+            tabBtn_app.textContent = t("tabApp");
+            tabBtn_about.textContent = t("tabAbout");
+            tabBtn_how.textContent = t("tabHow");
+
+            // Wizard labels
+            t_wizS1.textContent = t("wizS1");
+            t_wizS2.textContent = t("wizS2");
+            t_wizS3.textContent = t("wizS3");
+
+            // Mobile menu labels
+            if (typeof menuItem_app !== "undefined") {
+                menuItem_app.textContent = t("tabApp");
+                menuItem_about.textContent = t("tabAbout");
+                menuItem_how.textContent = t("tabHow");
+            }
+
+            // Placeholders / labels
+            textIn.placeholder = t("textPlaceholder");
+            hashIn.placeholder = t("hashPlaceholder");
+            txid.placeholder = t("txidPlaceholder");
+            t_txidLabel.textContent = t("txidLabel");
+            t_shaOutLabel.textContent = t("shaOutLabel");
+            t_viewMempool.textContent = t("viewMempool");
+
+            // How-to section
+            t_howTitle.textContent = t("howTitle");
+            t_howSubtitle.textContent = t("howSubtitle");
+            t_howS1T.textContent = t("howS1T");
+            t_howS1D.textContent = t("howS1D");
+            t_howS2T.textContent = t("howS2T");
+            t_howS2D.textContent = t("howS2D");
+            t_howS3T.textContent = t("howS3T");
+            t_howS3D.textContent = t("howS3D");
+            t_howS4T.textContent = t("howS4T");
+            t_howS4D.textContent = t("howS4D");
+            t_howNoteBadge.textContent = t("howNoteBadge");
+            t_howNote.textContent = t("howNote");
+
+            // if verify box is visible, keep it in current language where possible
+            if (verifyBox.style.display !== "none" && verifyBadge.textContent === "FOUND" || verifyBadge.textContent === "RECORDED") {
+                verifyMsg.textContent = t("done");
+            }
+
+
+
+            /* ================= intro modal ================= */
+            let introModal, modalCloseBtn;
+
+            function applyModalLang() {
+                if (!introModal || !modalCloseBtn) return;
+                t_modalTitle.textContent = t("modalTitle");
+                t_modalP1.textContent = t("modalP1");
+                t_modalL1.textContent = t("modalL1");
+                t_modalL2.textContent = t("modalL2");
+                t_modalL3.textContent = t("modalL3");
+                t_modalNote.textContent = t("modalNote");
+                modalCloseBtn.textContent = t("modalBtn");
+            }
+
+            function showIntroModalIfNeeded() {
+                if (!introModal) return;
+                if (!localStorage.getItem("introSeen")) {
+                    applyModalLang();
+                    introModal.classList.add("show");
+                }
+            }
+
+            function initIntroModal() {
+                introModal = document.getElementById("introModal");
+                modalCloseBtn = document.getElementById("modalCloseBtn");
+                if (!introModal || !modalCloseBtn) return;
+
+                // Avoid double-binding if applyLang() runs multiple times
+                if (!modalCloseBtn.dataset.bound) {
+                    modalCloseBtn.addEventListener("click", () => {
+                        introModal.classList.remove("show");
+                        localStorage.setItem("introSeen", "1");
+                    });
+                    modalCloseBtn.dataset.bound = "1";
+                }
+
+                showIntroModalIfNeeded();
+            }
+
+            document.addEventListener("DOMContentLoaded", initIntroModal);
+            applyModalLang();
+            refreshWizard();
+            refreshWizard();
+            updateButtons();
+        }
+
+        langSelect.value = currentLang;
+        applyLang(currentLang);
+        langSelect.addEventListener("change", e => applyLang(e.target.value));
+
+        function resetPayUi() {
+            payBadge.textContent = "IDLE";
+            payMsg.textContent = t("payIdle");
+            qrRow.style.display = "none";
+            bolt11.value = "";
+            qrImg.removeAttribute("src");
+        }
+
+        /* ================= hashing ================= */
+        btnHash.addEventListener("click", async () => {
+            const manual = (hashIn.value || "").trim();
+
+            // 1) If user pasted a valid SHA-256, use it directly
+            if (isHash(manual)) {
+                outHash.textContent = manual.toLowerCase();
+                resetPayUi();
+                refreshWizard();
+                updateButtons();
+                return;
+            }
+
+            const txt = (textIn.value || "");
+            const f = fileIn.files && fileIn.files[0];
+
+            // 2) If text is provided, hash text (UTF-8)
+            if (txt.trim().length > 0) {
+                const enc = new TextEncoder();
+                const data = enc.encode(txt);
+                const buf = await crypto.subtle.digest("SHA-256", data);
+                const hex = [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, "0")).join("");
+                outHash.textContent = hex;
+                resetPayUi();
+                refreshWizard();
+                updateButtons();
+                return;
+            }
+
+            // 3) Otherwise hash file (if provided)
+            if (f) {
+                const buf = await crypto.subtle.digest("SHA-256", await f.arrayBuffer());
+                const hex = [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, "0")).join("");
+                outHash.textContent = hex;
+                resetPayUi();
+                refreshWizard();
+                updateButtons();
+                return;
+            }
+
+            // Nothing to hash
+        });
+
+        txid.addEventListener("input", updateButtons);
+
+        textIn.addEventListener("input", () => {
+            resetPayUi();
+            refreshWizard();
+            updateButtons();
+        });
+
+        fileIn.addEventListener("change", () => {
+            resetPayUi();
+            refreshWizard();
+            updateButtons();
+        });
+
+        hashIn.addEventListener("input", () => {
+            const v = (hashIn.value || "").trim();
+            if (isHash(v)) {
+                outHash.textContent = v.toLowerCase();
+                resetPayUi();
+            } else if (v.length === 0) {
+                // ако изтриеш hash-а, не пипаме outHash автоматично
+                // (можеш да решиш да го върнеш на "—" ако искаш)
+            }
+            updateButtons();
+        });
+
+        /* ================= backend helpers ================= */
+        async function postJson(url, body) {
+            const r = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body || {})
+            });
+            const j = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(j?.error || `HTTP ${r.status}`);
+            return j;
+        }
+
+        /* ================= PAY + WRITE ================= */
+        btnPay.addEventListener("click", async () => {
+            const hash = outHash.textContent.trim();
+            if (!isHash(hash)) return;
+
+            // lock buttons during payment/write
+            btnPay.disabled = true;
+            btnHash.disabled = true;
+
+            payBadge.textContent = "WAIT";
+            payMsg.textContent = t("paying");
+
+            try {
+                // 1) create invoice
+                const inv = await postJson("/api/ln/invoice", {
+                    amountSat: 1000,
+                    memo: "Proof " + hash.slice(0, 8),
+                    expirySec: 900
+                });
+
+                bolt11.value = inv.payment_request || "";
+                const ln = "lightning:" + (inv.payment_request || "");
+                qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=" + encodeURIComponent(ln);
+                qrRow.style.display = "block";
+
+                // 2) wait paid
+                while (true) {
+                    const st = await fetch("/api/ln/status/" + encodeURIComponent(inv.checking_id), { cache: "no-store" }).then(r => r.json());
+                    if (st?.paid) break;
+                    await new Promise(r => setTimeout(r, 2000));
+                }
+
+                payBadge.textContent = "PAID";
+                payMsg.textContent = t("paid");
+
+                // 3) write opreturn
+                const out = await postJson("/api/opreturn", { hashHex: hash, network: "mainnet" });
+
+                // 4) update UI
+                txid.value = out.txid || "";
+                mempoolLink.href = "https://mempool.space/tx/" + out.txid;
+                mempoolLink.style.display = "inline-block";
+
+                verifyBox.style.display = "flex";
+                verifyBadge.className = "badge good";
+                verifyBadge.textContent = "RECORDED";
+                verifyMsg.textContent = t("done");
+
+                refreshWizard();
+
+                payBadge.textContent = "DONE";
+                payMsg.textContent = t("done");
+
+            } catch (e) {
+                payBadge.textContent = "ERROR";
+                payMsg.textContent = String(e?.message || e);
+            } finally {
+                btnHash.disabled = false;
+                refreshWizard();
+                updateButtons(); // re-enable pay/verify according to state
+            }
+        });
+
+        /* ================= VERIFY (real check) ================= */
+        btnVerify.addEventListener("click", async () => {
+            const tid = txid.value.trim();
+            const hash = outHash.textContent.trim().toLowerCase();
+
+            if (!isTx(tid)) return;
+
+            verifyBox.style.display = "flex";
+            verifyBadge.className = "badge neutral";
+            verifyBadge.textContent = "CHECK";
+            verifyMsg.textContent = t("checking");
+
+            mempoolLink.href = "https://mempool.space/tx/" + tid;
+            mempoolLink.style.display = "inline-block";
+
+            try {
+                const r = await fetch("https://mempool.space/api/tx/" + tid, { cache: "no-store" });
+                if (!r.ok) throw new Error("TX not found");
+                const tx = await r.json();
+
+                // If we have a hash, verify match in OP_RETURN outputs. If not, just show tx link.
+                let found = false;
+                if (isHash(hash)) {
+                    found = (tx.vout || []).some(v =>
+                        v.scriptpubkey_type === "op_return" &&
+                        (v.scriptpubkey || "").toLowerCase().includes(hash)
+                    );
+                }
+
+                if (isHash(hash) && found) {
+                    verifyBadge.className = "badge good";
+                    verifyBadge.textContent = "FOUND";
+                    verifyMsg.textContent = t("done");
+                } else if (isHash(hash) && !found) {
+                    verifyBadge.className = "badge bad";
+                    verifyBadge.textContent = "NOT FOUND";
+                    verifyMsg.textContent = t("notFound");
+                } else {
+                    // No hash available → still useful to confirm the tx exists
+                    verifyBadge.className = "badge neutral";
+                    verifyBadge.textContent = "OK";
+                    verifyMsg.textContent = t("txLoadedNoHash");
+                }
+            } catch {
+                verifyBadge.className = "badge bad";
+                verifyBadge.textContent = "ERROR";
+                verifyMsg.textContent = t("verifyError");
+            }
+        });
+
+
+        /* ================= tabs ================= */
+        function setActiveTab(tab) {
+            const wanted = tab || localStorage.getItem("tab") || "app";
+
+            document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+            document.querySelectorAll(".tab-content").forEach(s => s.classList.remove("active"));
+
+            const btn = document.querySelector('.tab[data-tab="' + wanted + '"]') || document.querySelector('.tab[data-tab="app"]');
+            const sec = document.getElementById("tab-" + (btn?.dataset?.tab || "app"));
+
+            btn?.classList.add("active");
+            sec?.classList.add("active");
+
+            // Mobile menu active state
+            const mi = document.querySelectorAll(".menu-item");
+            mi.forEach(x => x.classList.remove("active"));
+            const activeMi = document.querySelector('.menu-item[data-tab="' + (btn?.dataset?.tab || "app") + '"]');
+            activeMi?.classList.add("active");
+
+            localStorage.setItem("tab", btn?.dataset?.tab || "app");
+        }
+
+        document.querySelectorAll(".tab").forEach(btn => {
+            btn.addEventListener("click", () => setActiveTab(btn.dataset.tab));
+        });
+
+        // Restore last tab
+        setActiveTab();
+
+
+        /* ================= mobile hamburger menu ================= */
+        (function () {
+            const menuBtn = document.getElementById("menuBtn");
+            const menuPanel = document.getElementById("menuPanel");
+            if (!menuBtn || !menuPanel) return;
+
+            function closeMenu() {
+                menuPanel.classList.remove("open");
+                menuBtn.setAttribute("aria-expanded", "false");
+            }
+
+            function toggleMenu() {
+                const open = menuPanel.classList.toggle("open");
+                menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+            }
+
+            menuBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                toggleMenu();
+            });
+
+            // Close when clicking outside
+            document.addEventListener("click", () => closeMenu());
+
+            // Prevent inside clicks from bubbling and closing immediately
+            menuPanel.addEventListener("click", (e) => e.stopPropagation());
+
+            // Hook menu items
+            menuPanel.querySelectorAll(".menu-item").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    setActiveTab(btn.dataset.tab);
+                    closeMenu();
+                });
+            });
+
+            // Close on resize to desktop
+            window.addEventListener("resize", () => {
+                if (window.innerWidth > 640) closeMenu();
+            });
+        })();
+
+
+
+        /* ================= sticky tabs offset ================= */
+        (function () {
+            const headerEl = document.querySelector("header");
+            const navEl = document.querySelector("nav.tabs");
+            function updateOffset() {
+                if (!headerEl || !navEl) return;
+                const h = headerEl.getBoundingClientRect().height;
+                navEl.style.top = Math.round(h) + "px";
+            }
+            window.addEventListener("resize", updateOffset);
+            window.addEventListener("load", updateOffset);
+            updateOffset();
+        })();
+
+        updateButtons();
+    </script>
+
+    <!-- INTRO MODAL -->
+    <div id="introModal" class="modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-card">
+            <h2 id="t_modalTitle"></h2>
+            <p id="t_modalP1"></p>
+
+            <ul class="icon-list">
+                <li><span class="icon">🔒</span><span id="t_modalL1"></span></li>
+                <li><span class="icon">⛓️</span><span id="t_modalL2"></span></li>
+                <li><span class="icon">🧾</span><span id="t_modalL3"></span></li>
+            </ul>
+
+            <div class="modal-note" id="t_modalNote"></div>
+
+            <button class="primary modal-btn" id="modalCloseBtn"></button>
+        </div>
+    </div>
+
+</body>
+</html>

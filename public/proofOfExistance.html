@@ -1,0 +1,629 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Bitcoin Proof of Existence</title>
+    <link rel="icon" href="data:,">
+
+    <style>
+        :root {
+            --btc: #f7931a;
+            --bg0: #0b0e13;
+            --bg1: #121722;
+            --card: #171c28;
+            --line: #242b3d;
+            --text: #f2f4f8;
+            --muted: #9aa4bf;
+            --good: #2ecc71;
+            --bad: #ff5c7a;
+            --radius: 18px;
+            --shadow: 0 20px 60px rgba(0,0,0,.55);
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui,Segoe UI,Roboto;
+            background: radial-gradient(900px 420px at 75% 0%,rgba(247,147,26,.14),transparent 60%), radial-gradient(700px 380px at 20% 10%,rgba(247,147,26,.08),transparent 60%), linear-gradient(180deg,var(--bg1),var(--bg0));
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+            background: rgba(11,14,19,.90);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 16px
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .brand h1 {
+            margin: 0;
+            color: var(--btc);
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: .2px;
+        }
+
+        .brand p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        select, button, input, textarea {
+            background: #0f1420;
+            color: var(--text);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        select {
+            width: auto;
+            padding-right: 36px;
+        }
+
+        button {
+            font-weight: 800;
+            cursor: pointer;
+            border: none;
+        }
+
+            button.primary {
+                background: linear-gradient(180deg,#ffb347,var(--btc));
+                color: #000;
+                box-shadow: 0 10px 30px rgba(247,147,26,.18);
+            }
+
+            button.warn {
+                background: linear-gradient(180deg,#ffd27a,#f9a825);
+                color: #000;
+                box-shadow: 0 10px 30px rgba(249,168,37,.14);
+            }
+
+            button:disabled {
+                opacity: .45;
+                cursor: not-allowed;
+                filter: grayscale(40%);
+                box-shadow: none;
+            }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .card {
+            background: linear-gradient(180deg,#1a2030,#141a26);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+            .card .hd {
+                padding: 16px;
+                border-bottom: 1px solid var(--line)
+            }
+
+                .card .hd h2 {
+                    margin: 0;
+                    font-size: 15px
+                }
+
+                .card .hd small {
+                    color: var(--muted);
+                    font-size: 12px
+                }
+
+            .card .bd {
+                padding: 16px
+            }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 10px
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .status {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 12px;
+            margin-top: 14px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(15,20,32,.55);
+        }
+
+        .badge {
+            font-size: 12px;
+            font-weight: 900;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,.06);
+        }
+
+            .badge.good {
+                color: var(--good)
+            }
+
+            .badge.bad {
+                color: var(--bad)
+            }
+
+            .badge.neutral {
+                color: var(--btc)
+            }
+
+        .mono {
+            font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+            word-break: break-all;
+            line-height: 1.3;
+        }
+
+        a.mempool {
+            color: var(--btc);
+            font-weight: 900;
+            display: inline-block;
+            margin-top: 12px;
+            text-decoration: none;
+        }
+
+            a.mempool:hover {
+                text-decoration: underline
+            }
+
+        /* QR + invoice */
+        .qrwrap {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        #qrImg {
+            width: 220px;
+            height: 220px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: #fff;
+        }
+
+        #bolt11 {
+            flex: 1;
+            min-height: 220px;
+            resize: none;
+        }
+
+        .smallhint {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        /* --- Responsive rules --- */
+        @media (max-width:1024px) {
+            .grid {
+                grid-template-columns: 1fr
+            }
+        }
+
+        @media (max-width:640px) {
+            .wrap {
+                padding: 12px
+            }
+
+            .card .hd, .card .bd {
+                padding: 14px
+            }
+
+            .topbar {
+                align-items: flex-start
+            }
+
+            select {
+                width: 100%
+            }
+
+            /* Make buttons full width on mobile */
+            .row {
+                flex-direction: column
+            }
+
+            button {
+                width: 100%
+            }
+
+            /* QR stack */
+            .qrwrap {
+                flex-direction: column
+            }
+
+            #qrImg {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 1/1;
+                max-width: 360px
+            }
+
+            #bolt11 {
+                min-height: 140px
+            }
+
+            /* TXID/input bigger tap target */
+            input, textarea, select, button {
+                padding: 13px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="wrap topbar">
+            <div class="brand">
+                <h1 id="t_title"></h1>
+                <p id="t_subtitle"></p>
+            </div>
+            <select id="langSelect" aria-label="Language">
+                <option value="en">EN</option>
+                <option value="bg">BG</option>
+                <option value="de">DE</option>
+            </select>
+        </div>
+    </header>
+
+    <main class="wrap">
+        <div class="grid">
+
+            <!-- CREATE -->
+            <section class="card">
+                <div class="hd">
+                    <h2 id="t_createTitle"></h2>
+                    <small id="t_createDesc"></small>
+                </div>
+                <div class="bd">
+                    <label id="t_fileLabel"></label>
+                    <input id="fileIn" type="file" />
+
+                    <div class="row">
+                        <button class="primary" id="btnHash"></button>
+                        <button class="warn" id="btnPay" disabled></button>
+                    </div>
+
+                    <div class="status">
+                        <span class="badge neutral" id="payBadge">IDLE</span>
+                        <div id="payMsg"></div>
+                    </div>
+
+                    <div id="qrRow" style="display:none;margin-top:12px">
+                        <div class="qrwrap">
+                            <img id="qrImg" alt="Lightning invoice QR" />
+                            <div style="flex:1;min-width:0">
+                                <textarea id="bolt11" class="mono" readonly></textarea>
+                                <div class="smallhint" id="t_invoiceHint"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <label>SHA-256</label>
+                    <div id="outHash" class="mono">—</div>
+                </div>
+            </section>
+
+            <!-- VERIFY -->
+            <section class="card">
+                <div class="hd">
+                    <h2 id="t_verifyTitle"></h2>
+                    <small>mempool.space</small>
+                </div>
+                <div class="bd">
+                    <label>TXID</label>
+                    <input id="txid" placeholder="64-hex TXID..." />
+
+                    <div class="row">
+                        <button class="primary" id="btnVerify" disabled></button>
+                    </div>
+
+                    <div id="verifyBox" class="status" style="display:none">
+                        <span class="badge neutral" id="verifyBadge"></span>
+                        <div id="verifyMsg"></div>
+                    </div>
+
+                    <a id="mempoolLink" class="mempool" target="_blank" rel="noreferrer" style="display:none">
+                        View on mempool.space →
+                    </a>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        /* ================= i18n ================= */
+        const i18n = {
+            en: {
+                title: "Bitcoin Proof of Existence",
+                subtitle: "Lightning → OP_RETURN → immutable timestamp",
+                createTitle: "Create timestamp",
+                createDesc: "Hash locally and anchor to Bitcoin mainnet",
+                fileLabel: "File (optional)",
+                genHash: "Generate SHA-256",
+                pay: "Pay & write to blockchain",
+                paying: "Waiting for Lightning payment…",
+                paid: "Paid. Writing to blockchain…",
+                payIdle: "Generate hash, then pay.",
+                invoiceHint: "Scan with a Lightning wallet (or copy BOLT11).",
+                done: "This hash is recorded on the Bitcoin blockchain.",
+                verifyTitle: "Verify timestamp",
+                verify: "Verify",
+                checking: "Checking blockchain…",
+                notFound: "Transaction exists, but this hash is NOT in OP_RETURN.",
+                verifyError: "Unable to fetch transaction from mempool.space.",
+                rightIdle: "Enter TXID and verify."
+            },
+            bg: {
+                title: "Bitcoin доказателство за съществуване",
+                subtitle: "Lightning → OP_RETURN → неизменим timestamp",
+                createTitle: "Създай timestamp",
+                createDesc: "Хеширай локално и запиши в Bitcoin mainnet",
+                fileLabel: "Файл (по избор)",
+                genHash: "Генерирай SHA-256",
+                pay: "Плати и запиши в блокчейна",
+                paying: "Чакам Lightning плащане…",
+                paid: "Платено. Пиша в блокчейна…",
+                payIdle: "Генерирай хеш, после плати.",
+                invoiceHint: "Сканирай с Lightning портфейл (или копирай BOLT11).",
+                done: "Този хеш съществува в Bitcoin блокчейна.",
+                verifyTitle: "Провери timestamp",
+                verify: "Провери",
+                checking: "Проверявам блокчейна…",
+                notFound: "Има транзакция, но този хеш НЕ е в OP_RETURN.",
+                verifyError: "Не мога да заредя транзакцията от mempool.space.",
+                rightIdle: "Въведи TXID и провери."
+            },
+            de: {
+                title: "Bitcoin Existenznachweis",
+                subtitle: "Lightning → OP_RETURN → unveränderlicher Timestamp",
+                createTitle: "Timestamp erstellen",
+                createDesc: "Lokal hashen und in Bitcoin Mainnet verankern",
+                fileLabel: "Datei (optional)",
+                genHash: "SHA-256 erzeugen",
+                pay: "Bezahlen & in Blockchain schreiben",
+                paying: "Warte auf Lightning-Zahlung…",
+                paid: "Bezahlt. Schreibe in die Blockchain…",
+                payIdle: "Erzeuge Hash, dann bezahlen.",
+                invoiceHint: "Mit Lightning-Wallet scannen (oder BOLT11 kopieren).",
+                done: "Dieser Hash ist in der Bitcoin-Blockchain gespeichert.",
+                verifyTitle: "Timestamp prüfen",
+                verify: "Prüfen",
+                checking: "Prüfe Blockchain…",
+                notFound: "Transaktion existiert, aber dieser Hash ist NICHT in OP_RETURN.",
+                verifyError: "Transaktion konnte nicht von mempool.space geladen werden.",
+                rightIdle: "TXID eingeben und prüfen."
+            }
+        };
+
+        let currentLang = localStorage.getItem("lang") || "en";
+
+        function t(key) {
+            return (i18n[currentLang] && i18n[currentLang][key]) || (i18n.en[key] || key);
+        }
+
+        /* ================= validation + state ================= */
+        function isHash(h) { return /^[0-9a-f]{64}$/i.test(h); }
+        function isTx(tid) { return /^[0-9a-f]{64}$/i.test((tid || "").trim()); }
+
+        function updateButtons() {
+            btnPay.disabled = !isHash(outHash.textContent.trim());
+            btnVerify.disabled = !isTx(txid.value);
+        }
+
+        /* ================= language apply ================= */
+        function applyLang(lang) {
+            currentLang = lang;
+            localStorage.setItem("lang", lang);
+            document.documentElement.lang = lang;
+
+            t_title.textContent = t("title");
+            t_subtitle.textContent = t("subtitle");
+            t_createTitle.textContent = t("createTitle");
+            t_createDesc.textContent = t("createDesc");
+            t_fileLabel.textContent = t("fileLabel");
+            btnHash.textContent = t("genHash");
+            btnPay.textContent = t("pay");
+            t_verifyTitle.textContent = t("verifyTitle");
+            btnVerify.textContent = t("verify");
+            payMsg.textContent = t("payIdle");
+            t_invoiceHint.textContent = t("invoiceHint");
+
+            // if verify box is visible, keep it in current language where possible
+            if (verifyBox.style.display !== "none" && verifyBadge.textContent === "FOUND") {
+                verifyMsg.textContent = t("done");
+            }
+
+            updateButtons();
+        }
+
+        langSelect.value = currentLang;
+        applyLang(currentLang);
+        langSelect.addEventListener("change", e => applyLang(e.target.value));
+
+        /* ================= hashing ================= */
+        btnHash.addEventListener("click", async () => {
+            const f = fileIn.files && fileIn.files[0];
+            if (!f) return;
+            const buf = await crypto.subtle.digest("SHA-256", await f.arrayBuffer());
+            const hex = [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, "0")).join("");
+            outHash.textContent = hex;
+
+            // reset payment UI when new hash is generated
+            payBadge.textContent = "IDLE";
+            payMsg.textContent = t("payIdle");
+            qrRow.style.display = "none";
+            bolt11.value = "";
+            qrImg.removeAttribute("src");
+
+            updateButtons();
+        });
+
+        txid.addEventListener("input", updateButtons);
+
+        /* ================= backend helpers ================= */
+        async function postJson(url, body) {
+            const r = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body || {})
+            });
+            const j = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(j?.error || `HTTP ${r.status}`);
+            return j;
+        }
+
+        /* ================= PAY + WRITE ================= */
+        btnPay.addEventListener("click", async () => {
+            const hash = outHash.textContent.trim();
+            if (!isHash(hash)) return;
+
+            // lock buttons during payment/write
+            btnPay.disabled = true;
+            btnHash.disabled = true;
+
+            payBadge.textContent = "WAIT";
+            payMsg.textContent = t("paying");
+
+            try {
+                // 1) create invoice
+                const inv = await postJson("/api/ln/invoice", {
+                    amountSat: 1000,
+                    memo: "Proof " + hash.slice(0, 8),
+                    expirySec: 900
+                });
+
+                bolt11.value = inv.payment_request || "";
+                const ln = "lightning:" + (inv.payment_request || "");
+                qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=" + encodeURIComponent(ln);
+                qrRow.style.display = "block";
+
+                // 2) wait paid
+                while (true) {
+                    const st = await fetch("/api/ln/status/" + encodeURIComponent(inv.checking_id), { cache: "no-store" }).then(r => r.json());
+                    if (st?.paid) break;
+                    await new Promise(r => setTimeout(r, 2000));
+                }
+
+                payBadge.textContent = "PAID";
+                payMsg.textContent = t("paid");
+
+                // 3) write opreturn
+                const out = await postJson("/api/opreturn", { hashHex: hash, network: "mainnet" });
+
+                // 4) update UI
+                txid.value = out.txid || "";
+                mempoolLink.href = "https://mempool.space/tx/" + out.txid;
+                mempoolLink.style.display = "inline-block";
+
+                verifyBox.style.display = "flex";
+                verifyBadge.className = "badge good";
+                verifyBadge.textContent = "RECORDED";
+                verifyMsg.textContent = t("done");
+
+                payBadge.textContent = "DONE";
+                payMsg.textContent = t("done");
+
+            } catch (e) {
+                payBadge.textContent = "ERROR";
+                payMsg.textContent = String(e?.message || e);
+            } finally {
+                btnHash.disabled = false;
+                updateButtons(); // re-enable pay/verify according to state
+            }
+        });
+
+        /* ================= VERIFY (real check) ================= */
+        btnVerify.addEventListener("click", async () => {
+            const tid = txid.value.trim();
+            const hash = outHash.textContent.trim().toLowerCase();
+
+            if (!isTx(tid)) return;
+
+            verifyBox.style.display = "flex";
+            verifyBadge.className = "badge neutral";
+            verifyBadge.textContent = "CHECK";
+            verifyMsg.textContent = t("checking");
+
+            mempoolLink.href = "https://mempool.space/tx/" + tid;
+            mempoolLink.style.display = "inline-block";
+
+            try {
+                const r = await fetch("https://mempool.space/api/tx/" + tid, { cache: "no-store" });
+                if (!r.ok) throw new Error("TX not found");
+                const tx = await r.json();
+
+                // If we have a hash, verify match in OP_RETURN outputs. If not, just show tx link.
+                let found = false;
+                if (isHash(hash)) {
+                    found = (tx.vout || []).some(v =>
+                        v.scriptpubkey_type === "op_return" &&
+                        (v.scriptpubkey || "").toLowerCase().includes(hash)
+                    );
+                }
+
+                if (isHash(hash) && found) {
+                    verifyBadge.className = "badge good";
+                    verifyBadge.textContent = "FOUND";
+                    verifyMsg.textContent = t("done");
+                } else if (isHash(hash) && !found) {
+                    verifyBadge.className = "badge bad";
+                    verifyBadge.textContent = "NOT FOUND";
+                    verifyMsg.textContent = t("notFound");
+                } else {
+                    // No hash available → still useful to confirm the tx exists
+                    verifyBadge.className = "badge neutral";
+                    verifyBadge.textContent = "OK";
+                    verifyMsg.textContent = "Transaction loaded. Provide SHA-256 to check OP_RETURN.";
+                }
+            } catch {
+                verifyBadge.className = "badge bad";
+                verifyBadge.textContent = "ERROR";
+                verifyMsg.textContent = t("verifyError");
+            }
+        });
+
+        updateButtons();
+    </script>
+</body>
+</html>
